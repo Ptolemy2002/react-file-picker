@@ -4,7 +4,7 @@ import FilePicker from "@ptolemy2002/react-file-picker";
 const supportedTypes = ["image/png", "image/jpeg", "image/gif"];
 
 function App() {
-    const [urls, setUrls] = useState<string[]>([]);
+    const [urls, setUrls] = useState<readonly string[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     return (

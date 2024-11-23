@@ -37,10 +37,11 @@ export default function FilePicker({
 
     // Create a list of ObjectURLs for the files
     useEffect(() => {
-        urlsRef.current.forEach(URL.revokeObjectURL);
         if (generateURLs) urlsRef.current = files.map(file => URL.createObjectURL(file));
         if (validateFiles(files)) onFilesPicked?.(files, urlsRef.current);
 
+        // This will run not just when the component unmounts, but also before every re-render
+        // with changes to the `files` state
         return () => {
             urlsRef.current.forEach(URL.revokeObjectURL);
         };
