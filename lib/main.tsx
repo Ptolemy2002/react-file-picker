@@ -11,6 +11,7 @@ export type FilePickerProps = {
     onFilesPicked?: (files: readonly File[], urls: readonly string[]) => void;
     validateFiles?: (files: readonly File[]) => boolean;
     render?: (props: FilePickerRenderFunctionProps) => ReactNode;
+    generateURLs?: boolean;
 } & HTMLProps<HTMLInputElement>;
 
 export default function FilePicker({
@@ -18,6 +19,7 @@ export default function FilePicker({
     onFilesPicked,
     validateFiles = () => true,
     render,
+    generateURLs = true,
     onChange: onInputChange,
     ...props
 }: FilePickerProps) {
@@ -36,7 +38,7 @@ export default function FilePicker({
     // Create a list of ObjectURLs for the files
     useEffect(() => {
         urlsRef.current.forEach(URL.revokeObjectURL);
-        urlsRef.current = files.map(file => URL.createObjectURL(file));
+        if (generateURLs) urlsRef.current = files.map(file => URL.createObjectURL(file));
         if (validateFiles(files)) onFilesPicked?.(files, urlsRef.current);
 
         return () => {

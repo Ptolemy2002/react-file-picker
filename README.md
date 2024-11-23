@@ -1,6 +1,6 @@
 # React File Picker
 
-This is a library that provides a simple file picker for React applications. It also automatically manages the object URLs for you so you can use them within your application without needing to do that yourself.
+This is a library that provides a simple file picker for React applications. It also automatically manages the object URLs for you so you can use them within your application without needing to do that yourself (can be disabled).
 
 ## Type Reference
 ```typescript
@@ -15,11 +15,8 @@ type FilePickerProps = {
     inputRef?: React.RefObject<HTMLInputElement>;
     onFilesPicked?: (files: readonly File[], urls: readonly string[]) => void;
     validateFiles?: (files: readonly File[]) => boolean;
-    render?: (props: {
-        input: HTMLInputElement;
-        files: readonly File[];
-        urls: readonly string[];
-    }) => ReactNode;
+    render?: (props: FilePickerRenderFunctionProps) => ReactNode;
+    generateURLs?: boolean;
 } & HTMLProps<HTMLInputElement>
 ```
 
@@ -31,11 +28,12 @@ A component that renders a file picker and manages the object URLs for you. It d
 #### Props
 - `inputRef` (`React.RefObject<HTMLInputElement>`): A ref object that will be used to access the input element. This is useful for when you want to trigger the file picker from outside the rendered component.
 - `onFilesPicked` (`(files: readonly File[], urls: readonly string[]) => void`): A function that is called when files are picked. The first argument is an array of the picked files, and the second argument is an array of the object URLs for those files. Note that this will not be called if the files are not valid.
-- `validateFiles` (`(files: readonly File[]) => boolean`): A function that is called when files are picked to determine whether the selected files are all valid. This is also the best place to limit the number of files that can be picked and set error messages.
+- `validateFiles` (`(files: readonly File[]) => boolean`): A function that is called when files are picked to determine whether the selected files are all valid. This is also the best place to limit the number of files that can be picked and set error messages. By default, this function always returns `true`.
 - `render` (`(props: FilePickerRenderFunctionProps) => ReactNode`): A function that is called to render the component. This is useful for when you want to customize the appearance and functionality of the file picker. If unspecified, the appearance and functionality of the default file picker for the browser will be used. The function is passed an object with the following properties:
     - `input` (`HTMLInputElement`): The input element that is used to pick files.
     - `files` (`readonly File[]`): An array of the picked files.
     - `urls` (`readonly string[]`): An array of the object URLs for the picked files.
+- `generateURLs` (`boolean`): A boolean that determines whether object URLs should be generated for the picked files. If set to `false`, the `urls` array will always be empty. This is useful for when you want to manage the object URLs yourself or have an alternative way of displaying the files. By default, this is set to `true`.
 
 ## Peer Dependencies
 - `react^18.3.1`
