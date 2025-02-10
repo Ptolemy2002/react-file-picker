@@ -1,10 +1,10 @@
 import { HTMLProps, ReactNode, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 
-export type FilePickerRenderFunctionProps = {
+export interface FilePickerRenderFunctionProps {
     input: HTMLInputElement;
     files: readonly File[];
     urls: readonly string[];
-};
+}
 
 export type FilePickerProps = {
     inputRef?: React.RefObject<HTMLInputElement>;
@@ -33,7 +33,7 @@ export default function FilePicker({
         const _files = Array.from(e.target.files ?? []);
 
         setFiles(_files);
-    }, [onFilesPicked, validateFiles]);
+    }, []);
 
     // Create a list of ObjectURLs for the files
     useEffect(() => {
@@ -43,9 +43,9 @@ export default function FilePicker({
         // This will run not just when the component unmounts, but also before every re-render
         // with changes to the `files` state
         return () => {
-            urlsRef.current.forEach(URL.revokeObjectURL);
+            urlsRef.current.forEach((url) => URL.revokeObjectURL(url));
         };
-    }, [files]);
+    }, [files, generateURLs, onFilesPicked, validateFiles]);
 
     return (
         <>
@@ -63,7 +63,7 @@ export default function FilePicker({
                 }}
             />
 
-            {inputRef.current && render && render({
+            {inputRef.current && render?.({
                 input: inputRef.current,
                 files,
                 urls: urlsRef.current
