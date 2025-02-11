@@ -81,6 +81,7 @@ export default function FilePicker({
                 onClick={e => {
                     // Reset on every click, so that the same file can be selected again
                     // and the `onChange` event will fire still
+                    if (debug) console.log("Resetting input value on click");
                     e.currentTarget.value = "";
                     onInputClick?.(e);
                 }}
