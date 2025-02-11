@@ -33,10 +33,14 @@ export default function FilePicker({
     useImperativeHandle(_inputRef, () => inputRef.current!);
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const _files = Array.from(e.target.files ?? []);
-        if (debug) console.log("Selected files:", _files);
+        const _files = [...Array.from(e.target.files ?? [])];
+        if (debug) {
+            console.log("Selected files:", _files);
+            console.log("Equality check:", _files === files);
+        }
+
         setFiles(_files);
-    }, [debug]);
+    }, [debug, files]);
 
     // Create a list of ObjectURLs for the files
     useEffect(() => {
