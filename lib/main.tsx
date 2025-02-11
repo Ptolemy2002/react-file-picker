@@ -51,9 +51,9 @@ export default function FilePicker({
             if (debug) console.log("Generated file URLs:", urlsRef.current);
         }
 
-        if (validateFiles(files)) {
+        if (validateFiles(_files)) {
             if (debug) console.log("Files are valid");
-            onFilesPicked?.(files, urlsRef.current);
+            onFilesPicked?.(_files, urlsRef.current);
         } else {
             if (debug) console.log("Files are invalid");
         }
