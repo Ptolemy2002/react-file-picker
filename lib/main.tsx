@@ -1,4 +1,4 @@
-import { HTMLProps, ReactNode, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { HTMLProps, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useUnmountEffect } from "@ptolemy2002/react-mount-effects";
 import { OptionalValueCondition, Override, valueConditionMatches } from "@ptolemy2002/ts-utils";
 import { extensions } from "mime-types";
@@ -79,10 +79,10 @@ export default function FilePicker({
 
     useUnmountEffect(revokeURLs);
 
-    let acceptList: string[] | undefined;
-    if (accept !== undefined) {
-        acceptList = AllMimeTypes.filter((mime) => valueConditionMatches(mime, accept));
-    }
+    const acceptList = useMemo(() => {
+        if (accept === undefined) return accept;
+        return AllMimeTypes.filter((mime) => valueConditionMatches(mime, accept));
+    }, [accept]);
 
     if (debug) console.log("Rendering FilePicker", files, urlsRef.current);
     return (
