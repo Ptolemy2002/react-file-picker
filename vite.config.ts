@@ -36,5 +36,10 @@ export default defineConfig({
       "src": resolve(__dirname, 'src'),
       "lib": resolve(__dirname, 'lib')
     }
+  },
+
+  // Copy this to a vite.config.ts file in the root of your project
+  define: {
+    "process.platform": JSON.stringify(process.platform)
   }
 });

@@ -1,5 +1,9 @@
 import { HTMLProps, ReactNode, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useUnmountEffect } from "@ptolemy2002/react-mount-effects";
+import { OptionalValueCondition, Override, valueConditionMatches } from "@ptolemy2002/ts-utils";
+import { extensions } from "mime-types";
+
+export const AllMimeTypes: readonly string[] = Object.keys(extensions);
 
 export interface FilePickerRenderFunctionProps {
     input: HTMLInputElement;
@@ -7,14 +11,17 @@ export interface FilePickerRenderFunctionProps {
     urls: readonly string[];
 }
 
-export type FilePickerProps = {
-    inputRef?: React.RefObject<HTMLInputElement>;
-    onFilesPicked?: (files: readonly File[], urls: readonly string[]) => void;
-    validateFiles?: (files: readonly File[]) => boolean;
-    render?: (props: FilePickerRenderFunctionProps) => ReactNode;
-    generateURLs?: boolean;
-    debug?: boolean;
-} & HTMLProps<HTMLInputElement>;
+export type FilePickerProps = Override<
+    HTMLProps<HTMLInputElement>, {
+        inputRef?: React.RefObject<HTMLInputElement>;
+        onFilesPicked?: (files: readonly File[], urls: readonly string[]) => void;
+        validateFiles?: (files: readonly File[]) => boolean;
+        render?: (props: FilePickerRenderFunctionProps) => ReactNode;
+        generateURLs?: boolean;
+        debug?: boolean;
+        accept?: OptionalValueCondition<string>
+    }
+>;
 
 export default function FilePicker({
     inputRef: _inputRef,
@@ -25,6 +32,7 @@ export default function FilePicker({
     onChange: onInputChange,
     onClick: onInputClick,
     debug=false,
+    accept,
     ...props
 }: FilePickerProps) {
     const [files, setFiles] = useState<File[]>([]);
@@ -71,6 +79,11 @@ export default function FilePicker({
 
     useUnmountEffect(revokeURLs);
 
+    let acceptList: string[] | undefined;
+    if (accept !== undefined) {
+        acceptList = AllMimeTypes.filter((mime) => valueConditionMatches(mime, accept));
+    }
+
     if (debug) console.log("Rendering FilePicker", files, urlsRef.current);
     return (
         <>
@@ -94,6 +107,8 @@ export default function FilePicker({
                     e.currentTarget.value = "";
                     onInputClick?.(e);
                 }}
+
+                accept={acceptList?.join(",")}
             />
 
             {inputRef.current && render?.({
