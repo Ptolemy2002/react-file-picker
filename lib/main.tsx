@@ -39,16 +39,16 @@ export default function FilePicker({
 
     // Create a list of ObjectURLs for the files
     useEffect(() => {
-        if (generateURLs) {
-            urlsRef.current = files.map(file => URL.createObjectURL(file));
-            if (debug) console.log("Generated URLs:", urlsRef.current);
-        }
-        
         if (validateFiles(files)) {
             if (debug) console.log("Files are valid");
             onFilesPicked?.(files, urlsRef.current);
         } else {
             if (debug) console.log("Files are invalid");
+        }
+
+        if (generateURLs) {
+            urlsRef.current = files.map(file => URL.createObjectURL(file));
+            if (debug) console.log("Generated URLs:", urlsRef.current);
         }
 
         // This will run not just when the component unmounts, but also before every re-render
