@@ -12,6 +12,7 @@ export type FilePickerProps = {
     validateFiles?: (files: readonly File[]) => boolean;
     render?: (props: FilePickerRenderFunctionProps) => ReactNode;
     generateURLs?: boolean;
+    debug?: boolean;
 } & HTMLProps<HTMLInputElement>;
 
 export default function FilePicker({
@@ -21,6 +22,7 @@ export default function FilePicker({
     render,
     generateURLs = true,
     onChange: onInputChange,
+    debug=false,
     ...props
 }: FilePickerProps) {
     const [files, setFiles] = useState<File[]>([]);
@@ -31,22 +33,34 @@ export default function FilePicker({
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const _files = Array.from(e.target.files ?? []);
-
+        if (debug) console.log("Selected files:", _files);
         setFiles(_files);
-    }, []);
+    }, [debug]);
 
     // Create a list of ObjectURLs for the files
     useEffect(() => {
-        if (generateURLs) urlsRef.current = files.map(file => URL.createObjectURL(file));
-        if (validateFiles(files)) onFilesPicked?.(files, urlsRef.current);
+        if (generateURLs) {
+            urlsRef.current = files.map(file => URL.createObjectURL(file));
+            if (debug) console.log("Generated URLs:", urlsRef.current);
+        }
+        
+        if (validateFiles(files)) {
+            if (debug) console.log("Files are valid");
+            onFilesPicked?.(files, urlsRef.current);
+        } else {
+            if (debug) console.log("Files are invalid");
+        }
 
         // This will run not just when the component unmounts, but also before every re-render
         // with changes to the `files` state
         return () => {
-            urlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+            urlsRef.current.forEach((url) => {
+                if (debug) console.log("Revoking URL:", url);
+                URL.revokeObjectURL(url)
+            });
             urlsRef.current = [];
         };
-    }, [files, generateURLs, onFilesPicked, validateFiles]);
+    }, [files, generateURLs, onFilesPicked, validateFiles, debug]);
 
     return (
         <>
