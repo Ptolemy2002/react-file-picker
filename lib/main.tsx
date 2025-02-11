@@ -22,6 +22,7 @@ export default function FilePicker({
     render,
     generateURLs = true,
     onChange: onInputChange,
+    onClick: onInputClick,
     debug=false,
     ...props
 }: FilePickerProps) {
@@ -75,6 +76,13 @@ export default function FilePicker({
                 onChange={e => {
                     handleChange(e);
                     onInputChange?.(e);
+                }}
+
+                onClick={e => {
+                    // Reset on every click, so that the same file can be selected again
+                    // and the `onChange` event will fire still
+                    e.currentTarget.value = "";
+                    onInputClick?.(e);
                 }}
             />
 
