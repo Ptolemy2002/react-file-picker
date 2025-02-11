@@ -36,7 +36,7 @@ export default function FilePicker({
         const _files = [...Array.from(e.target.files ?? [])];
         if (debug) {
             console.log("Selected files:", _files);
-            console.log("Equality check:", _files === files);
+            console.log("File list equality check:", _files === files);
         }
 
         setFiles(_files);
@@ -53,20 +53,22 @@ export default function FilePicker({
 
         if (generateURLs) {
             urlsRef.current = files.map(file => URL.createObjectURL(file));
-            if (debug) console.log("Generated URLs:", urlsRef.current);
+            if (debug) console.log("Generated file URLs:", urlsRef.current);
         }
 
         // This will run not just when the component unmounts, but also before every re-render
         // with changes to the `files` state
         return () => {
             urlsRef.current.forEach((url) => {
-                if (debug) console.log("Revoking URL:", url);
+                if (debug) console.log("Revoking file URL:", url);
                 URL.revokeObjectURL(url)
             });
             urlsRef.current = [];
         };
     }, [files, generateURLs, onFilesPicked, validateFiles, debug]);
 
+
+    if (debug) console.log("Rendering FilePicker", files, urlsRef.current);
     return (
         <>
             <input
@@ -85,7 +87,7 @@ export default function FilePicker({
                 onClick={e => {
                     // Reset on every click, so that the same file can be selected again
                     // and the `onChange` event will fire still
-                    if (debug) console.log("Resetting input value on click");
+                    if (debug) console.log("Resetting file input value on click");
                     e.currentTarget.value = "";
                     onInputClick?.(e);
                 }}
