@@ -44,6 +44,7 @@ export default function FilePicker({
         // with changes to the `files` state
         return () => {
             urlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+            urlsRef.current = [];
         };
     }, [files, generateURLs, onFilesPicked, validateFiles]);
 
