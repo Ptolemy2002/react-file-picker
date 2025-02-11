@@ -28,6 +28,7 @@ export default function FilePicker({
 }: FilePickerProps) {
     const [files, setFiles] = useState<File[]>([]);
     const urlsRef = useRef<string[]>([]);
+    const [, setInitialized] = useState(false);
 
     const inputRef = useRef<HTMLInputElement | null>(null);
     useImperativeHandle(_inputRef, () => inputRef.current!);
@@ -39,11 +40,17 @@ export default function FilePicker({
             console.log("File list equality check:", _files === files);
         }
 
-        setFiles(_files);
-    }, [debug, files]);
+        if (generateURLs) {
+            urlsRef.current.forEach((url) => {
+                if (debug) console.log("Revoking file URL:", url);
+                URL.revokeObjectURL(url)
+            });
+            urlsRef.current = [];
 
-    // Create a list of ObjectURLs for the files
-    useEffect(() => {
+            urlsRef.current = _files.map(file => URL.createObjectURL(file));
+            if (debug) console.log("Generated file URLs:", urlsRef.current);
+        }
+
         if (validateFiles(files)) {
             if (debug) console.log("Files are valid");
             onFilesPicked?.(files, urlsRef.current);
@@ -51,21 +58,12 @@ export default function FilePicker({
             if (debug) console.log("Files are invalid");
         }
 
-        if (generateURLs) {
-            urlsRef.current = files.map(file => URL.createObjectURL(file));
-            if (debug) console.log("Generated file URLs:", urlsRef.current);
-        }
+        setFiles(_files);
+    }, [debug, files, generateURLs, onFilesPicked, validateFiles]);
 
-        // This will run not just when the component unmounts, but also before every re-render
-        // with changes to the `files` state
-        return () => {
-            urlsRef.current.forEach((url) => {
-                if (debug) console.log("Revoking file URL:", url);
-                URL.revokeObjectURL(url)
-            });
-            urlsRef.current = [];
-        };
-    }, [files, generateURLs, onFilesPicked, validateFiles, debug]);
+    useEffect(() => {
+        setInitialized(true);
+    }, []);
 
 
     if (debug) console.log("Rendering FilePicker", files, urlsRef.current);
