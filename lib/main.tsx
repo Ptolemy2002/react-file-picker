@@ -1,4 +1,5 @@
 import { HTMLProps, ReactNode, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { useUnmountEffect } from "@ptolemy2002/react-mount-effects";
 
 export interface FilePickerRenderFunctionProps {
     input: HTMLInputElement;
@@ -33,6 +34,14 @@ export default function FilePicker({
     const inputRef = useRef<HTMLInputElement | null>(null);
     useImperativeHandle(_inputRef, () => inputRef.current!);
 
+    const revokeURLs = useCallback(() => {
+        urlsRef.current.forEach((url) => {
+            if (debug) console.log("Revoking file URL:", url);
+            URL.revokeObjectURL(url)
+        });
+        urlsRef.current = [];
+    }, [debug]);
+
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const _files = [...Array.from(e.target.files ?? [])];
         if (debug) {
@@ -41,12 +50,7 @@ export default function FilePicker({
         }
 
         if (generateURLs) {
-            urlsRef.current.forEach((url) => {
-                if (debug) console.log("Revoking file URL:", url);
-                URL.revokeObjectURL(url)
-            });
-            urlsRef.current = [];
-
+            revokeURLs();
             urlsRef.current = _files.map(file => URL.createObjectURL(file));
             if (debug) console.log("Generated file URLs:", urlsRef.current);
         }
@@ -59,12 +63,13 @@ export default function FilePicker({
         }
 
         setFiles(_files);
-    }, [debug, files, generateURLs, onFilesPicked, validateFiles]);
+    }, [debug, files, generateURLs, onFilesPicked, validateFiles, revokeURLs]);
 
     useEffect(() => {
         setInitialized(true);
     }, []);
 
+    useUnmountEffect(revokeURLs);
 
     if (debug) console.log("Rendering FilePicker", files, urlsRef.current);
     return (

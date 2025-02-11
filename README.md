@@ -38,6 +38,7 @@ A component that renders a file picker and manages the object URLs for you. It d
 ## Peer Dependencies
 - `react^18.3.1`
 - `react-dom^18.3.1`
+- `@ptolemy2002/react-mount-effects^2.0.0`
 
 ## Commands
 The following commands exist in the project:
