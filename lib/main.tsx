@@ -5,10 +5,24 @@ import { extensions } from "mime-types";
 
 export const AllMimeTypes: readonly string[] = Object.keys(extensions);
 
+export type FilePickerChangeBehavior = "replace" | "append";
+
 export interface FilePickerRenderFunctionProps {
     input: HTMLInputElement;
     files: readonly File[];
     urls: readonly string[];
+    modifyInputFiles: (
+        transformer: (files: File[]) => File[] | undefined | void,
+        changeBehavior?: FilePickerChangeBehavior,
+        options?: {
+            dispatch?: {
+                change?: boolean;
+                changeOptions?: EventInit;
+                input?: boolean;
+                inputOptions?: EventInit;
+            }
+        }
+    ) => File[];
 }
 
 export type FilePickerProps = Override<
@@ -20,6 +34,7 @@ export type FilePickerProps = Override<
         generateURLs?: boolean;
         debug?: boolean;
         accept?: OptionalValueCondition<string>
+        defaultChangeBehavior?: FilePickerChangeBehavior;
     }
 >;
 
@@ -33,11 +48,13 @@ export default function FilePicker({
     onClick: onInputClick,
     debug=false,
     accept,
+    defaultChangeBehavior="replace",
     ...props
 }: FilePickerProps) {
     const [files, setFiles] = useState<File[]>([]);
     const urlsRef = useRef<string[]>([]);
     const [, setInitialized] = useState(false);
+    const changeBehaviorRef = useRef<FilePickerChangeBehavior>(defaultChangeBehavior);
 
     const inputRef = useRef<HTMLInputElement | null>(null);
     useImperativeHandle(_inputRef, () => inputRef.current!);
@@ -50,17 +67,64 @@ export default function FilePicker({
         urlsRef.current = [];
     }, [debug]);
 
+    const modifyInputFiles = useCallback<FilePickerRenderFunctionProps["modifyInputFiles"]>(
+        (
+            transformer, changeBehavior=defaultChangeBehavior,
+            {
+                dispatch: {
+                    change: dispatchChange=true,
+                    changeOptions={
+                        bubbles: true
+                    },
+
+                    input: dispatchInput=true,
+                    inputOptions={
+                        bubbles: true
+                    }
+                }={}
+            }={}
+        ) => {
+            // Directly modify the input element's files
+            // and dispatch the change and input events
+            // so we can keep everything in sync
+
+            const input = inputRef.current!;
+            const inputFiles = Array.from(input.files ?? []);
+            const newFiles = transformer(inputFiles) ?? inputFiles;
+
+            const dataTransfer = new DataTransfer();
+            if (changeBehavior === "append") {
+                inputFiles.forEach(file => dataTransfer.items.add(file));
+            }
+            newFiles.forEach(file => dataTransfer.items.add(file));
+
+            // Set change behavior for the next handleChange call. We already modified the files
+            // according to the current behavior, so we don't need that done again
+            changeBehaviorRef.current = "replace";
+            input.files = dataTransfer.files;
+            if (dispatchChange) input.dispatchEvent(new Event("change", changeOptions));
+            if (dispatchInput) input.dispatchEvent(new Event("input", inputOptions));
+
+            return newFiles;
+        }, [defaultChangeBehavior]
+    );
+
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const _files = [...Array.from(e.target.files ?? [])];
-        if (debug) {
-            console.log("Selected files:", _files);
-            console.log("File list equality check:", _files === files);
+        let _files: File[] = Array.from(e.target.files ?? []);
+
+        if (debug) console.log("Selected files:", _files);
+        
+        if (changeBehaviorRef.current === "append") {
+            if (debug) console.log("Appending new files to existing files");
+            _files = [...files, ..._files];
         }
 
         if (generateURLs) {
             revokeURLs();
             urlsRef.current = _files.map(file => URL.createObjectURL(file));
             if (debug) console.log("Generated file URLs:", urlsRef.current);
+        } else {
+            urlsRef.current = [];
         }
 
         if (validateFiles(_files)) {
@@ -70,8 +134,10 @@ export default function FilePicker({
             if (debug) console.log("Files are invalid");
         }
 
+        // Reset change behavior to default
+        changeBehaviorRef.current = defaultChangeBehavior;
         setFiles(_files);
-    }, [debug, files, generateURLs, onFilesPicked, validateFiles, revokeURLs]);
+    }, [debug, files, generateURLs, onFilesPicked, validateFiles, revokeURLs, defaultChangeBehavior]);
 
     useEffect(() => {
         setInitialized(true);
@@ -114,7 +180,8 @@ export default function FilePicker({
             {inputRef.current && render?.({
                 input: inputRef.current,
                 files,
-                urls: urlsRef.current
+                urls: urlsRef.current,
+                modifyInputFiles
             })}
         </>
     );

@@ -20,11 +20,25 @@ export default defineConfig({
 import { HTMLProps, ReactNode } from 'react';
 import { OptionalValueCondition, Override } from "@ptolemy2002/ts-utils";
 
-type FilePickerRenderFunctionProps = {
+type FilePickerChangeBehavior = "replace" | "append";
+
+interface FilePickerRenderFunctionProps {
     input: HTMLInputElement;
     files: readonly File[];
     urls: readonly string[];
-};
+    modifyInputFiles: (
+        transformer: (files: File[]) => File[] | undefined | void,
+        changeBehavior?: FilePickerChangeBehavior,
+        options?: {
+            dispatch?: {
+                change?: boolean;
+                changeOptions?: EventInit;
+                input?: boolean;
+                inputOptions?: EventInit;
+            }
+        }
+    ) => File[];
+}
 
 type FilePickerProps = Override<
     HTMLProps<HTMLInputElement>, {
@@ -35,6 +49,7 @@ type FilePickerProps = Override<
         generateURLs?: boolean;
         debug?: boolean;
         accept?: OptionalValueCondition<string>
+        defaultChangeBehavior?: FilePickerChangeBehavior;
     }
 >;
 ```
@@ -58,7 +73,18 @@ A component that renders a file picker and manages the object URLs for you. It d
     - `input` (`HTMLInputElement`): The input element that is used to pick files.
     - `files` (`readonly File[]`): An array of the picked files.
     - `urls` (`readonly string[]`): An array of the object URLs for the picked files.
+    - `modifyInputFiles` (`function`): A function that can be called to directly modify the files that the input field has selected. It takes the following arguments:
+        - `transformer` (`(files: File[]) => File[] | undefined | void`): A function that takes the current files and returns the new files. If `undefined` is returned, the input list will be used, allowing you to mutate it instead of returning a new list.
+        - `changeBehavior` (`FilePickerChangeBehavior`): A string that determines the behavior when modifying the files. If set to `append`, the new files will be added to the existing list rather than replacing them. By default, this is set to the value of `defaultChangeBehavior`.
+        - `options` (`object`): An object that can be used to override the default behavior of the function. It has the following properties:
+            - `dispatch` (`object`): An object that determines whether the change and input events should be dispatched. It has the following properties:
+                - `change` (`boolean`): A boolean that determines whether the change event should be dispatched. By default, this is set to `true`.
+                - `changeOptions` (`EventInit`): An object that determines the options for the change event. By default, this is set to `{bubbles: true}`.
+                - `input` (`boolean`): A boolean that determines whether the input event should be dispatched. By default, this is set to `true`.
+                - `inputOptions` (`EventInit`): An object that determines the options for the input event. By default, this is set to `{bubbles: true}`.
 - `generateURLs` (`boolean`): A boolean that determines whether object URLs should be generated for the picked files. If set to `false`, the `urls` array will always be empty. This is useful for when you want to manage the object URLs yourself or have an alternative way of displaying the files. By default, this is set to `true`.
+- `defaultChangeBehavior` (`FilePickerChangeBehavior`): A string that determines the default behavior when modifying the files. If set to `append`, the new files will be added to the existing list rather than replacing them. You can override within `modifyInputFiles`. By default, this is set to `replace`.
+- `debug` (`boolean`): A boolean that determines whether debug messages should be logged to the console. By default, this is set to `false`.
 
 ## Peer Dependencies
 - `react^18.3.1`

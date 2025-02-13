@@ -5,14 +5,7 @@ import { OptionalValueCondition, valueConditionMatches } from "@ptolemy2002/ts-u
 const supportedTypes: OptionalValueCondition<string> = ["image/png", "image/jpeg", "image/gif"];
 
 function App() {
-    const [urls, setUrls] = useState<readonly string[]>([]);
     const [error, setError] = useState<string | null>(null);
-
-    const filePickHandler = useCallback<
-        (files: readonly File[], urls: readonly string[]) => void
-    >(
-        (_, urls) => setUrls(urls), []
-    );
 
     const fileValidateHandler = useCallback(
         (files: readonly File[]) => {
@@ -33,22 +26,42 @@ function App() {
         <>
             <h1>React File Picker</h1>
             <FilePicker
-                onFilesPicked={filePickHandler}
                 validateFiles={fileValidateHandler}
 
-                render={({ input, files }) => <>
+                render={({ input, files, urls, modifyInputFiles }) => <>
                     <button onClick={() => input.click()}>Pick Files</button>
-                    <ul>
-                        {files.map((file, i) => <li key={i}>{file.name}</li>)}
-                    </ul>
+
+                    {
+                        !error && <ul>
+                            {urls.map(
+                                (url, i) => {
+                                    const file = files[i];
+                                    return (
+                                        <li key={url} style={{
+                                            display: "flex",
+                                            flexDirection: "column"
+                                        }}>
+                                            {file.name}
+                                            <img src={url} alt="preview" style={{maxWidth: "50%"}} />
+                                            <button onClick={() => {
+                                                modifyInputFiles((files) => {
+                                                    files.splice(i, 1);
+                                                }, "replace");
+                                            }}>Remove</button>
+                                        </li>
+                                    );
+                                }
+                            )}
+                        </ul>
+                    }
                 </>}
 
+                defaultChangeBehavior="append"
                 accept={supportedTypes}
                 multiple
             />
 
             {error && <p style={{ color: "red" }}>{error}</p>}
-            {!error && urls.map((url, i) => <img key={i} src={url} alt="preview" style={{maxWidth: "50%"}} />)}
         </>
     );
 }
