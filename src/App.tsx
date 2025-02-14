@@ -46,7 +46,7 @@ function App() {
                                             <button onClick={() => {
                                                 modifyInputFiles((files) => {
                                                     files.splice(i, 1);
-                                                }, "replace");
+                                                });
                                             }}>Remove</button>
                                         </li>
                                     );

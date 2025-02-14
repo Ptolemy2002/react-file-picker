@@ -69,7 +69,7 @@ export default function FilePicker({
 
     const modifyInputFiles = useCallback<FilePickerRenderFunctionProps["modifyInputFiles"]>(
         (
-            transformer, changeBehavior=defaultChangeBehavior,
+            transformer, changeBehavior="replace",
             {
                 dispatch: {
                     change: dispatchChange=true,
@@ -89,12 +89,11 @@ export default function FilePicker({
             // so we can keep everything in sync
 
             const input = inputRef.current!;
-            const inputFiles = Array.from(input.files ?? []);
-            const newFiles = transformer(inputFiles) ?? inputFiles;
+            const newFiles = transformer(files) ?? files;
 
             const dataTransfer = new DataTransfer();
             if (changeBehavior === "append") {
-                inputFiles.forEach(file => dataTransfer.items.add(file));
+                files.forEach(file => dataTransfer.items.add(file));
             }
             newFiles.forEach(file => dataTransfer.items.add(file));
 
@@ -106,7 +105,7 @@ export default function FilePicker({
             if (dispatchInput) input.dispatchEvent(new Event("input", inputOptions));
 
             return newFiles;
-        }, [defaultChangeBehavior]
+        }, [files]
     );
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

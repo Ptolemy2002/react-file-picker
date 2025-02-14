@@ -75,7 +75,7 @@ A component that renders a file picker and manages the object URLs for you. It d
     - `urls` (`readonly string[]`): An array of the object URLs for the picked files.
     - `modifyInputFiles` (`function`): A function that can be called to directly modify the files that the input field has selected. It takes the following arguments:
         - `transformer` (`(files: File[]) => File[] | undefined | void`): A function that takes the current files and returns the new files. If `undefined` is returned, the input list will be used, allowing you to mutate it instead of returning a new list.
-        - `changeBehavior` (`FilePickerChangeBehavior`): A string that determines the behavior when modifying the files. If set to `append`, the new files will be added to the existing list rather than replacing them. By default, this is set to the value of `defaultChangeBehavior`.
+        - `changeBehavior` (`FilePickerChangeBehavior`): A string that determines the behavior when modifying the files. If set to `append`, the new files will be added to the existing list rather than replacing them. By default, this is set to `replace`.
         - `options` (`object`): An object that can be used to override the default behavior of the function. It has the following properties:
             - `dispatch` (`object`): An object that determines whether the change and input events should be dispatched. It has the following properties:
                 - `change` (`boolean`): A boolean that determines whether the change event should be dispatched. By default, this is set to `true`.
